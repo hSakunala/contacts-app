@@ -1,10 +1,13 @@
 import { useState } from "react";
 
-const ContactForm = ({ }) => {
+// get existing contact as parameter if editing contact
+const ContactForm = ({ existingContact = {}, updateCallback }) => {
     // useStates for all data entry in form
-    const [firstName, setFirstName] = useState("")
-    const [lastName, setLastName] = useState("")
-    const [email, setEmail] = useState("")
+    const [firstName, setFirstName] = useState(existingContact.firstName || "")
+    const [lastName, setLastName] = useState(existingContact.lastName || "")
+    const [email, setEmail] = useState(existingContact.email || "")
+
+    const updating = Object.entries(existingContact).length !== 0
 
     const onSubmit = async (e) => {
         e.preventDefault()
@@ -15,9 +18,11 @@ const ContactForm = ({ }) => {
             lastName,
             email
         }
-        const url = "http://127.0.0.1:5000/create_contact"
+        // depending if updating is true or false, change url endpoint
+        const url = "http://127.0.0.1:5000/" + (updating ? `update_contact/${existingContact.id}` : "create_contact")
         const options = {
-            method: "POST",
+            // if updating change api fetch method
+            method: updating ? "PATCH": "POST",
             headers: {
                 "Content-Type" : "application/json"
             },
@@ -30,7 +35,8 @@ const ContactForm = ({ }) => {
             const data = await response.json()
             alert(data.message)
         }else{
-            // success!!!
+            // tell app it finished create or update function and close modal
+            updateCallback()
         }
     }
 
@@ -63,7 +69,7 @@ const ContactForm = ({ }) => {
                     onChange={(e) => setEmail(e.target.value)}
                 />
             </div>
-            <button type="submit">Create Contact</button>
+            <button type="submit">{updating ? "Update" : "Create"}</button>
         </form>
     )
 };
